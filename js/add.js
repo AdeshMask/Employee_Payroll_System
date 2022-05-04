@@ -33,7 +33,23 @@ window.addEventListener('DOMContentLoaded', (event) => {
     }
 });
 
+const getEmployeePayrollDataFromStorage = (index) => {
+    return localStorage.getItem('employeePayrollList') ?
+        JSON.parse(localStorage.getItem('employeePayrollList'))[index] : [];
+}
 
+const setRecords = (empPayroll) => {
+    setValue("#name", empPayroll._name)
+    setSelectedValues('[name=profile]', empPayroll._profilePic);
+    setValue("#salary", empPayroll._salary);
+    setValue("#notes", empPayroll._note);
+    setValue("#day", new Date(empPayroll._startDate).getDay());
+    setValue("#month", new Date(empPayroll._startDate).toLocaleString('default', { month: 'short' }));
+    setValue("#year", new Date(empPayroll._startDate).getFullYear());
+    setTextValue(".salary-output", empPayroll._salary);
+    document.getElementById(empPayroll._gender).checked = true;
+    empPayroll._department.forEach(dept => document.getElementById(dept.toLowerCase()).checked = true);
+}
 
 const save = () => {
     try {
@@ -44,6 +60,52 @@ const save = () => {
         return;
     }
 }
+
+const resetForm = () => {
+    setValue("#name", "");
+    unsetSelectedValues("[name=profile]");
+    unsetSelectedValues("[name=gender]");
+    unsetSelectedValues("[name=department]");
+    setValue("#salary", "");
+    setValue("#notes", "");
+    setValue("#day", "1");
+    setValue("#month", "Jan");
+    setValue("#year", "2016");
+    setTextValue(".salary-output", "400000");
+}
+
+const unsetSelectedValues = (propertyValue) => {
+    let allItems = document.querySelectorAll(propertyValue);
+    allItems.forEach((item) => {
+        item.checked = false;
+    });
+};
+
+const setSelectedValues = (propertyValue, value) => {
+    let allItems = document.querySelectorAll(propertyValue);
+    allItems.forEach(item => {
+        if (Array.isArray(value)) {
+            if (value.includes(item.value)) {
+                item.checked = true;
+            }
+        }
+        else if (item.value === value)
+            item.checked = true;
+
+    });
+}
+
+const setTextValue = (id, value) => {
+    //not used anywhere!
+    const element = document.querySelector(id);
+    element.value = value;
+};
+
+const setValue = (id, value) => {
+    const element = document.querySelector(id);
+    element.value = value;
+};
+
 
 const createEmployeePayroll = () => {
     let employeePayroll = new EmployeePayroll();
@@ -69,6 +131,27 @@ const createEmployeePayroll = () => {
     return employeePayroll;
 }
 
+function createAndUpdateStorage(employeePayrollData) {
+    let employeePayrollList = JSON.parse(
+        localStorage.getItem("employeePayrollList")
+    );
+
+    const index = new URLSearchParams(window.location.search).get('index');
+    if (index == null || parseInt(index) < 0) {
+        if (employeePayrollList != undefined) {
+            employeePayrollList.push(employeePayrollData);
+        } else {
+            employeePayrollList = [employeePayrollData];
+        }
+    } else {
+        employeePayrollList[parseInt(index)] = employeePayrollData;
+    }
+    alert(employeePayrollList.toString());
+    localStorage.setItem(
+        "employeePayrollList",
+        JSON.stringify(employeePayrollList)
+    );
+}
 
 /**
  * gets the values of all the selected elements
@@ -100,26 +183,3 @@ const getInputElementValue = (id) => {
     let value = document.getElementById(id).value;
     return value;
 };
-
-
-function createAndUpdateStorage(employeePayrollData) {
-    let employeePayrollList = JSON.parse(
-        localStorage.getItem("employeePayrollList")
-    );
-
-    const index = new URLSearchParams(window.location.search).get('index');
-    if (index == null || parseInt(index) < 0) {
-        if (employeePayrollList != undefined) {
-            employeePayrollList.push(employeePayrollData);
-        } else {
-            employeePayrollList = [employeePayrollData];
-        }
-    } else {
-        employeePayrollList[parseInt(index)] = employeePayrollData;
-    }
-    alert(employeePayrollList.toString());
-    localStorage.setItem(
-        "employeePayrollList",
-        JSON.stringify(employeePayrollList)
-    );
-}
